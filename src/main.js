@@ -5,34 +5,6 @@ import config from './config.js';
 
 const $ = id => document.getElementById(id);
 const apiBase = (import.meta.env.VITE_API_URL || config.apiUrl || '').replace(/\/$/, '');
-const sample = `# 함께 나누는 작은 문서
-
-생각을 적고, 링크 하나로 공유하세요.  
-왼쪽에 마크다운을 작성하면 오른쪽에서 바로 확인할 수 있어요.
-
-## 이렇게 사용하세요
-
-1. **문서를 작성**하세요.
-2. 오른쪽 위 **공유하기**를 누르세요.
-3. 보기 또는 편집 권한을 선택하고 링크를 보내세요.
-
-> 같은 링크에서 항상 최신 내용을 확인할 수 있어요.
-
-## 마크다운도 가볍게
-
-- **굵게**, *기울임*, ~~취소선~~
-- [링크](https://www.markdownguide.org)와 이미지
-- 체크리스트, 표, 코드 블록
-
-\`\`\`javascript
-const message = "Hello, Markdown!";
-console.log(message);
-\`\`\`
-
----
-
-이 내용을 지우고, 나만의 문서를 시작해보세요.
-`;
 let id = '', token = '', role = 'edit', revision = 0;
 let dirty = false, saving = false, conflict = null, timer, pollTimer, creating = null, generatedLink = '';
 let disposed = false;
@@ -49,7 +21,6 @@ function toast(message) { $('toast').textContent = message; $('toast').hidden = 
 function render() {
   $('preview').innerHTML = DOMPurify.sanitize(marked.parse($('editor').value, { gfm: true, breaks: false }), { FORBID_TAGS: ['style', 'form', 'button', 'iframe'], ADD_ATTR: ['checked', 'disabled'] });
   $('preview').querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
-  $('count').textContent = `${$('editor').value.length.toLocaleString()}자`;
   document.title = `${$('title').value || '제목 없는 문서'} · Live Markdown`;
 }
 function apply(doc) { $('title').value = doc.title; $('editor').value = doc.content; revision = doc.revision || 0; render(); }
@@ -59,8 +30,7 @@ function setRole(next) {
   document.body.classList.toggle('viewer', viewer);
   $('editor-pane').hidden = viewer; $('share').hidden = viewer;
   $('title').readOnly = viewer; $('editor').readOnly = viewer;
-  $('role').textContent = viewer ? '보기 전용' : '편집 가능';
-  $('subtitle').textContent = viewer ? '공유된 문서의 최신 내용을 보고 있어요.' : '마크다운으로 쓰고, 링크 하나로 공유하세요.';
+  $('title').placeholder = viewer ? '' : '제목';
 }
 async function api(path, method = 'GET', body) {
   if (!apiBase) throw new Error('공유 서버가 아직 연결되지 않았습니다. README의 배포 설정을 완료해주세요.');
@@ -74,7 +44,7 @@ async function api(path, method = 'GET', body) {
 }
 function draft() {
   const ok = storageSet(localKey(), JSON.stringify({ ...values(), revision, dirty }));
-  if (!ok) notice('브라우저에 임시 저장할 수 없어요. 페이지를 닫기 전에 .md 파일을 다운로드해주세요.');
+  if (!ok) notice('브라우저에 임시 저장할 수 없어요. 페이지를 닫기 전에 작성 내용을 복사해주세요.');
 }
 async function ensureCreated() {
   if (id) return;
@@ -128,7 +98,7 @@ $('use-remote').onclick = () => { if (!conflict) return; storageSet(`${localKey(
 $('keep-local').onclick = () => { if (!conflict) return; revision = conflict.revision; conflict = null; dirty = true; notice(''); save(); };
 $('share').onclick = () => { $('share-error').hidden = true; $('share-dialog').showModal(); };
 $('share-dialog').addEventListener('click', event => { if (event.target === $('share-dialog')) { const rect = event.target.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close(); } });
-document.querySelectorAll('[name=permission]').forEach(input => input.onchange = () => { generatedLink = ''; $('link-row').hidden = true; $('copy-link').textContent = '링크 생성 및 복사'; });
+document.querySelectorAll('[name=permission]').forEach(input => input.onchange = () => { generatedLink = ''; $('link-row').hidden = true; $('copy-link').setAttribute('aria-label', '링크 생성 및 복사'); });
 $('copy-link').onclick = async () => {
   const button = $('copy-link'); button.disabled = true; $('share-error').hidden = true;
   try {
@@ -141,13 +111,12 @@ $('copy-link').onclick = async () => {
     const selected = document.querySelector('[name=permission]:checked').value;
     const result = await api(`/documents/${id}/share`, 'POST', { role: selected });
     const url = new URL(location.href); url.hash = new URLSearchParams({ doc: id, key: result.token }).toString();
-    generatedLink = url.href; $('share-link').value = generatedLink; $('link-row').hidden = false; button.textContent = '링크 다시 복사';
-    try { await navigator.clipboard.writeText(generatedLink); toast('공유 링크를 복사했어요'); }
+    generatedLink = url.href; $('share-link').value = generatedLink; $('link-row').hidden = false; button.setAttribute('aria-label', '링크 다시 복사');
+    try { await navigator.clipboard.writeText(generatedLink); toast('복사됨'); }
     catch { $('share-link').focus(); $('share-link').select(); toast('위 링크를 선택해 복사해주세요'); }
   } catch (error) { $('share-error').textContent = error.message; $('share-error').hidden = false; }
   finally { button.disabled = false; }
 };
-$('download').onclick = () => { const blob = new Blob([$('editor').value], { type: 'text/markdown;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${($('title').value || '문서').replace(/[\\/:*?"<>|]/g, '_')}.md`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
 window.addEventListener('beforeunload', event => { if ((dirty && id) || creating) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('hashchange', () => { disposed = true; location.reload(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
@@ -170,7 +139,7 @@ async function init() {
     } catch (error) { notice(error.message); status('문서를 열 수 없음'); }
   } else {
     let cached; try { cached = JSON.parse(storageGet('lmv:new') || 'null'); } catch { /* recover from invalid local data */ }
-    apply(cached && typeof cached.content === 'string' ? cached : { title: '제목 없는 문서', content: sample });
+    apply(cached && typeof cached.content === 'string' ? cached : { title: '', content: '' });
     setRole('edit');
     if (!apiBase) notice('현재는 브라우저에만 저장됩니다. 링크 공유는 저장 서버 연결 후 사용할 수 있어요.');
   }
