@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="description" content="쓰고, 미리 보고, 링크로 공유하는 간단한 마크다운 편집기." />
+    <title>Live Markdown</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  </head>
+  <body>
+    <header class="header">
+      <a class="brand" href="./" aria-label="Live Markdown 홈"><span class="mark">M<span>↓</span></span><span>Live Markdown</span></a>
+      <div class="actions"><span id="status" role="status">내 브라우저에 저장</span><span id="role" class="badge">편집 가능</span><button id="share" class="primary">공유하기 <span aria-hidden="true">↗</span></button></div>
+    </header>
+    <main id="app">
+      <div class="document-head"><div class="title-wrap"><input id="title" aria-label="문서 제목" placeholder="제목 없는 문서" maxlength="120" autocomplete="off" /><p id="subtitle">마크다운으로 쓰고, 링크 하나로 공유하세요.</p></div><button id="download" class="quiet" title="마크다운 파일 다운로드">.md 다운로드 <span aria-hidden="true">↓</span></button></div>
+      <div id="notice" class="notice" role="alert" hidden><span id="notice-text"></span><div id="conflict-actions" hidden><button id="use-remote">최신 내용 불러오기</button><button id="keep-local">내 내용으로 저장</button></div></div>
+      <div class="workspace">
+        <section id="editor-pane" class="pane editor-pane" aria-labelledby="editor-label"><div class="pane-head"><span id="editor-label">마크다운</span><span class="hint">Markdown</span></div><textarea id="editor" aria-label="마크다운 내용" spellcheck="false" placeholder="# 여기에 문서를 작성하세요"></textarea><div class="pane-foot"><span id="count">0자</span><span>입력하면 자동 저장됩니다</span></div></section>
+        <section class="pane preview-pane" aria-labelledby="preview-label"><div class="pane-head"><span id="preview-label">미리보기</span><span class="live"><i></i> Live</span></div><article id="preview" class="markdown-body"></article></section>
+      </div>
+      <footer>복잡한 설정 없이, 문서에만 집중하세요.<span>Markdown · Auto save · Share</span></footer>
+    </main>
+    <dialog id="share-dialog"><form method="dialog"><div class="dialog-head"><h2>링크로 공유</h2><button class="icon" aria-label="닫기">×</button></div><p>링크를 가진 사람에게 권한을 부여합니다.</p><fieldset><legend class="sr-only">공유 권한</legend><label class="permission"><input type="radio" name="permission" value="view" checked /><span><strong>보기만</strong><small>최신 문서를 읽을 수 있어요.</small></span><span aria-hidden="true">↗</span></label><label class="permission"><input type="radio" name="permission" value="edit" /><span><strong>편집 가능</strong><small>문서를 수정하고 다시 공유할 수 있어요.</small></span><span aria-hidden="true">✎</span></label></fieldset><p id="share-error" class="error" role="alert" hidden></p><div id="link-row" hidden><label for="share-link" class="sr-only">공유 링크</label><input id="share-link" readonly /></div><button id="copy-link" type="button" class="primary wide">링크 생성 및 복사</button><small class="dialog-note">편집 링크는 함께 수정할 사람에게만 보내주세요.</small></form></dialog>
+    <div id="toast" role="status" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

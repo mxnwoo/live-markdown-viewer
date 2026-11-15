@@ -63,4 +63,3 @@ npm run dev
 - 익명 생성이 허용됩니다. 공개 배포를 크게 운영할 때는 Cloudflare에서 생성 요청 제한을 별도로 설정하세요. 사용량에 따라 Cloudflare 비용이 발생할 수 있습니다.
 
 기술 참고: [GitHub Pages 배포](https://vite.dev/guide/static-deploy.html#github-pages), [Durable Objects 저장소](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/).
-

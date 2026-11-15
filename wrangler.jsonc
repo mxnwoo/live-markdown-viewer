@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "live-markdown-viewer-api",
+  "main": "server/worker.js",
+  "compatibility_date": "2026-11-15",
+  "vars": { "ALLOWED_ORIGINS": "https://mxnwoo.github.io,http://localhost:5173,http://127.0.0.1:5173,http://127.0.0.1:4173" },
+  "durable_objects": { "bindings": [{ "name": "DOCUMENTS", "class_name": "Document" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Document"] }]
+}
